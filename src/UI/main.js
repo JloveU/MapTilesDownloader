@@ -18,10 +18,10 @@ $(function() {
 
 		"div-1B": "",
 
-		"Google Maps": "https://mt0.google.com/vt?lyrs=m&x={x}&s=&y={y}&z={z}",
-		"Google Maps Satellite": "https://mt0.google.com/vt?lyrs=s&x={x}&s=&y={y}&z={z}",
-		"Google Maps Hybrid": "https://mt0.google.com/vt?lyrs=h&x={x}&s=&y={y}&z={z}",
-		"Google Maps Terrain": "https://mt0.google.com/vt?lyrs=p&x={x}&s=&y={y}&z={z}",
+		"Google Maps": "http://mt0.google.cn/vt/lyrs=m&hl=zh-cn&gl=cn&x={x}&s=&y={y}&z={z}",
+		"Google Maps Satellite": "http://mt0.google.cn/vt/lyrs=s&hl=zh-cn&gl=cn&x={x}&s=&y={y}&z={z}",
+		"Google Maps Hybrid": "http://mt0.google.cn/vt/lyrs=h&hl=zh-cn&gl=cn&x={x}&s=&y={y}&z={z}",
+		"Google Maps Terrain": "http://mt0.google.cn/vt/lyrs=p&hl=zh-cn&gl=cn&x={x}&s=&y={y}&z={z}",
 
 		"div-2": "",
 

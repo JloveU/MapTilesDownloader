@@ -1,2 +1,5 @@
 src/output/
 src/temp/
+.idea
+__pycache__
+*.pyc
