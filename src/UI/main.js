@@ -471,7 +471,7 @@ $(function() {
 
 		var request = await $.ajax({
 			url: "/start-download",
-			async: true,
+			async: false,
 			timeout: 30 * 1000,
 			type: "post",
 			contentType: false,
@@ -480,6 +480,8 @@ $(function() {
 			dataType: 'json',
 		})
 
+		var start_time = new Date();
+
 		let i = 0;
 		var iterator = async.eachLimit(allTiles, numThreads, function(item, done) {
 
@@ -487,75 +489,89 @@ $(function() {
 				return;
 			}
 
-			var boxLayer = previewRect(item);
+			var download_tile = function (item, done) {
+				var boxLayer = previewRect(item);
 
-			var url = "/download-tile";
+				var url = "/download-tile";
 
-			var data = new FormData();
-			data.append('x', item.x)
-			data.append('y', item.y)
-			data.append('z', item.z)
-			data.append('quad', generateQuadKey(item.x, item.y, item.z))
-			data.append('outputDirectory', outputDirectory)
-			data.append('outputFile', outputFile)
-			data.append('outputType', outputType)
-			data.append('outputScale', outputScale)
-			data.append('timestamp', timestamp)
-			data.append('source', source)
-			data.append('bounds', boundsArray.join(","))
-			data.append('center', centerArray.join(","))
+				var data = new FormData();
+				data.append('x', item.x)
+				data.append('y', item.y)
+				data.append('z', item.z)
+				data.append('quad', generateQuadKey(item.x, item.y, item.z))
+				data.append('outputDirectory', outputDirectory)
+				data.append('outputFile', outputFile)
+				data.append('outputType', outputType)
+				data.append('outputScale', outputScale)
+				data.append('timestamp', timestamp)
+				data.append('source', source)
+				data.append('bounds', boundsArray.join(","))
+				data.append('center', centerArray.join(","))
 
-			var request = $.ajax({
-				"url": url,
-				async: true,
-				timeout: 30 * 1000,
-				type: "post",
-			    contentType: false,
-			    processData: false,
-				data: data,
-				dataType: 'json',
-			}).done(function(data) {
+				var request = $.ajax({
+					"url": url,
+					async: true,
+					timeout: 30 * 1000,
+					type: "post",
+					contentType: false,
+					processData: false,
+					data: data,
+					dataType: 'json',
+				}).done(function(data) {
 
-				if(cancellationToken) {
-					return;
-				}
+					if(cancellationToken) {
+						return;
+					}
 
-				if(data.code == 200) {
-					showTinyTile(data.image)
-					logItem(item.x, item.y, item.z, data.message);
-				} else {
-					logItem(item.x, item.y, item.z, data.code + " Error downloading tile");
-				}
+					if(data.code == 200) {
+						showTinyTile(data.image)
+						logItem(item.x, item.y, item.z, data.message);
+					} else {
+						logItem(item.x, item.y, item.z, data.code + " Error downloading tile");
+					}
 
-			}).fail(function(data, textStatus, errorThrown) {
+				}).fail(function(data, textStatus, errorThrown) {
 
-				if(cancellationToken) {
-					return;
-				}
+					if(cancellationToken) {
+						return;
+					}
 
-				logItem(item.x, item.y, item.z, "Error while relaying tile");
-				//allTiles.push(item);
+					logItem(item.x, item.y, item.z, "Error while relaying tile");
+					//allTiles.push(item);
 
-			}).always(function(data) {
-				i++;
+				}).always(function(data) {
+					i++;
 
-				removeLayer(boxLayer);
-				updateProgress(i, allTiles.length);
+					removeLayer(boxLayer);
+					updateProgress(i, allTiles.length);
 
-				done();
-				
-				if(cancellationToken) {
-					return;
-				}
-			});
+					done();
 
-			requests.push(request);
+					if(cancellationToken) {
+						return;
+					}
+				});
+
+				requests.push(request);
+			};
+
+			var current_time = new Date();
+			var total_minutes = Math.floor((current_time - start_time) / (1000 * 60));
+			if (total_minutes % 15 >= 10) {  // pause 5 minutes after each 10 minutes to avoid IP banned
+				logItemRaw("[" + (new Date()).toLocaleString() + "] " + "Pause 5 minutes after each 10 minutes to avoid IP banned");
+				setTimeout(function () {
+					logItemRaw("[" + (new Date()).toLocaleString() + "] " + "Resume downloading");
+					download_tile(item, done);
+				}, 1000 * 60 * 5 + 1000 * 5);
+			} else {
+				download_tile(item, done);
+			}
 
 		}, async function(err) {
 
 			var request = await $.ajax({
 				url: "/end-download",
-				async: true,
+				async: false,
 				timeout: 30 * 1000,
 				type: "post",
 				contentType: false,
